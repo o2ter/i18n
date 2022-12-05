@@ -25,13 +25,13 @@
 
 import _ from 'lodash';
 
-import { replaceAll } from './utils';
-
 const _lang_map: Record<string, string> = {
   "zh-cn": "zh-hans",
   "zh-hk": "zh-hant",
   "zh-tw": "zh-hant",
 };
+
+const replace_pattern = (pattern: string, params: Record<string, any>) => pattern.replace(/\$\{\s*(\w+)\s*\}/g, (_, key) => `${params[key]}`);
 
 export const localize = <T extends unknown>(
   strings: Record<string, T>,
@@ -57,9 +57,7 @@ export const localize = <T extends unknown>(
         let result = selector(strings[tag]);
 
         if (params && _.isString(result)) {
-          for (const [key, value] of _.entries(params)) {
-            result = replaceAll(result, '${' + key + '}', `${value}`);
-          }
+          result = replace_pattern(result, params);
         }
 
         return result;
@@ -75,9 +73,7 @@ export const localize = <T extends unknown>(
         let result = selector(strings[languageCode]);
 
         if (params && _.isString(result)) {
-          for (const [key, value] of _.entries(params)) {
-            result = replaceAll(result, '${' + key + '}', `${value}`);
-          }
+          result = replace_pattern(result, params);
         }
 
         return result;
