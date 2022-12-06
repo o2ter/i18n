@@ -34,11 +34,11 @@ const _lang_map: Record<string, string> = {
 
 const replace_pattern = (pattern: string, params: Record<string, any>) => pattern.replace(/\$\{\s*(\w+)\s*\}/g, (_, key) => `${params[key]}`);
 
-export const localize = <T extends unknown>(
+export const localize = <T extends unknown, R extends unknown>(
   strings: Record<string, T>,
   params: Record<string, any>,
   userLocales: string[],
-  selector: (x: T) => any
+  selector: (x: T) => R
 ) => {
 
   if (_.isEmpty(strings)) return;
