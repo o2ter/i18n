@@ -23,9 +23,9 @@
 //  THE SOFTWARE.
 //
 
-const IETF_PRIMARY_LANGUAGE = '((?:[a-z]{5,8}|[a-z]{2,3}))';
-const IETF_SCRIPT = '(?:-)([a-z]{4})';
-const IETF_REGION = '(?:-)([a-z]{2}|[0-8][0-9]{2}(?<!000))';
+const IETF_PRIMARY_LANGUAGE = '([a-z]{5,8}|[a-z]{2,3})';
+const IETF_SCRIPT = '-([a-z]{4})';
+const IETF_REGION = '-([a-z]{2}|[0-8][0-9]{2})';
 
 const regex = new RegExp(`^${IETF_PRIMARY_LANGUAGE}(?:${IETF_SCRIPT})?(?:${IETF_REGION})?$`, 'i');
 
