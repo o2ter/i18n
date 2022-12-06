@@ -31,7 +31,7 @@ const regex = new RegExp(`^${IETF_PRIMARY_LANGUAGE}(?:${IETF_SCRIPT})?(?:${IETF_
 
 export const decompose = (tag: string) => {
   const [,language,script,region] = tag.match(regex) ?? [];
-  return { language, script, region };
+  return { tag, language, script, region };
 }
 
 export default decompose;

@@ -48,30 +48,30 @@ export const localize = <T extends unknown, R extends unknown>(
     return params && _.isString(result) ? replace_pattern(result, params) : result;
   }
 
-  for (const lang of userLocales.map(x => x.toLowerCase())) {
+  const langs = userLocales.map(x => decompose(x.toLowerCase()));
 
-    const part = decompose(lang);
+  for (const { tag, language, script, region } of langs) {
 
-    if (!_.isNil(selector(strings[lang]))) {
-      return fetch(lang);
+    if (!_.isNil(selector(strings[tag]))) {
+      return fetch(tag);
     }
 
     if (
-      !_.isEmpty(part.script) &&
-      !_.isNil(selector(strings[`${part.language}-${part.script}`]))
+      !_.isEmpty(script) &&
+      !_.isNil(selector(strings[`${language}-${script}`]))
     ) {
-      return fetch(`${part.language}-${part.script}`);
+      return fetch(`${language}-${script}`);
     }
 
-    if (!_.isEmpty(part.region)) {
-      const mapped = _lang_map[`${part.language}-${part.region}`];
+    if (!_.isEmpty(region)) {
+      const mapped = _lang_map[`${language}-${region}`];
       if (!_.isNil(selector(strings[mapped]))) {
         return fetch(mapped);
       }
     }
 
-    if (!_.isNil(selector(strings[part.language]))) {
-      return fetch(part.language);
+    if (!_.isNil(selector(strings[language]))) {
+      return fetch(language);
     }
   }
 }
