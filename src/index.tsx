@@ -29,51 +29,39 @@ import EventEmitter from 'events';
 
 import _localize from './localize';
 
-const I18nContext = React.createContext({ preferredLocale: 'en' });
+const I18nContext = React.createContext({ preferredLocale: 'en', fallback: 'en' });
 const i18n_update_event = new EventEmitter();
 
 export const I18nProvider: React.FC<React.PropsWithChildren<{
   preferredLocale?: string;
+  fallback?: string;
   onChange?: (locale: string) => void;
 }>> = ({
   preferredLocale = 'en',
+  fallback = 'en',
   onChange = () => {},
   children
 }) => {
 
-    const [_preferredLocale, setPreferredLocale] = React.useState(preferredLocale);
+  const [_preferredLocale, setPreferredLocale] = React.useState(preferredLocale);
 
-    React.useEffect(() => {
-      i18n_update_event.addListener('update', setPreferredLocale);
-      return () => { i18n_update_event.removeListener('update', setPreferredLocale); }
-    }, [setPreferredLocale]);
+  React.useEffect(() => {
+    i18n_update_event.addListener('update', setPreferredLocale);
+    return () => { i18n_update_event.removeListener('update', setPreferredLocale); }
+  }, [setPreferredLocale]);
 
-    React.useEffect(() => { onChange(_preferredLocale); }, [_preferredLocale]);
-    const value = React.useMemo(() => ({ preferredLocale: _preferredLocale }), [_preferredLocale]);
+  React.useEffect(() => { onChange(_preferredLocale); }, [_preferredLocale]);
+  const value = React.useMemo(() => ({ preferredLocale: _preferredLocale, fallback }), [_preferredLocale, fallback]);
 
-    return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
-  };
+  return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
+};
 
-function getLanguagePartFromCode(code: string) {
-  if (!_.isString(code) || code.indexOf('-') < 0) return code;
-  return code.split('-')[0];
-}
+function _useUserLocales(i18nState?: { preferredLocale: string; fallback?: string; }) {
 
-function getScriptPartFromCode(code: string) {
-  if (!_.isString(code) || code.indexOf('-') < 0) return;
-  return code.split('-')[1];
-}
-
-function _useUserLocales(i18nState?: { preferredLocale: string; }) {
-
-  const locales = [];
+  const locales: string[] = [];
 
   if (i18nState?.preferredLocale) {
-
-    locales.push({
-      languageCode: getLanguagePartFromCode(i18nState.preferredLocale),
-      scriptCode: getScriptPartFromCode(i18nState.preferredLocale),
-    });
+    locales.push(i18nState.preferredLocale);
   }
 
   if (globalThis.navigator) {
@@ -82,49 +70,35 @@ function _useUserLocales(i18nState?: { preferredLocale: string; }) {
     const language = navigator.language;
 
     if (languages) {
-
       for (const language of languages) {
-
-        locales.push({
-          languageCode: getLanguagePartFromCode(language),
-          scriptCode: getScriptPartFromCode(language),
-        });
+        locales.push(language);
       }
-
     } else if (language) {
-
-      locales.push({
-        languageCode: getLanguagePartFromCode(language),
-        scriptCode: getScriptPartFromCode(language),
-      });
+      locales.push(language);
     }
+  }
+
+  if (i18nState?.fallback) {
+    locales.push(i18nState.fallback);
   }
 
   return locales;
 }
 
-export const useUserLocales = () => _useUserLocales(React.useContext(I18nContext));
+export const useUserLocales = () => _useUserLocales(_.omit(React.useContext(I18nContext), 'fallback'));
 export const setPreferredLocale = (locale: string) => i18n_update_event.emit('update', locale);
-
-const default_locales = [
-  { languageCode: 'en', scriptCode: undefined },
-];
 
 export const useLocalize = (
   { ...strings },
   params: Record<string, any> = {}
-) => _localize(strings, params,  _useUserLocales(React.useContext(I18nContext)).concat(default_locales), (x) => x);
+) => _localize(strings, params,  _useUserLocales(React.useContext(I18nContext)), (x) => x);
 
 export const LocalizationStrings = ({ ...strings }) => ({
-
   useLocalize() {
-
     const i18nState = React.useContext(I18nContext);
-
     return {
-
       string(key: _.PropertyPath, params: Record<string, any> = {}) {
-        return _localize(strings, params, _useUserLocales(i18nState).concat(default_locales), (x) => _.get(x, key)) ?? key;
+        return _localize(strings, params, _useUserLocales(i18nState), (x) => _.get(x, key)) ?? key;
       }
     }
   }

@@ -33,13 +33,20 @@ const _lang_map: Record<string, string> = {
 
 const replace_pattern = (pattern: string, params: Record<string, any>) => pattern.replace(/\$\{\s*(\w+)\s*\}/g, (_, key) => `${params[key]}`);
 
+function getLanguagePartFromCode(code: string) {
+  if (!_.isString(code) || code.indexOf('-') < 0) return code;
+  return code.split('-')[0];
+}
+
+function getScriptPartFromCode(code: string) {
+  if (!_.isString(code) || code.indexOf('-') < 0) return;
+  return code.split('-')[1];
+}
+
 export const localize = <T extends unknown>(
   strings: Record<string, T>,
   params: Record<string, any>,
-  userLocales: {
-    languageCode: string;
-    scriptCode: string | undefined;
-  }[],
+  userLocales: string[],
   selector: (x: T) => any
 ) => {
 
@@ -47,9 +54,12 @@ export const localize = <T extends unknown>(
 
   for (const locale of userLocales) {
 
-    if (!_.isEmpty(locale.languageCode) && !_.isEmpty(locale.scriptCode)) {
+    const languageCode = getLanguagePartFromCode(locale);
+    const scriptCode = getScriptPartFromCode(locale);
 
-      let tag = `${locale.languageCode}-${locale.scriptCode}`.toLowerCase();
+    if (!_.isEmpty(languageCode) && !_.isEmpty(scriptCode)) {
+
+      let tag = `${languageCode}-${scriptCode}`.toLowerCase();
       tag = _lang_map[tag] ?? tag;
 
       if (!_.isNil(selector(strings[tag]))) {
@@ -64,13 +74,13 @@ export const localize = <T extends unknown>(
       }
     }
 
-    if (!_.isEmpty(locale.languageCode)) {
+    if (!_.isEmpty(languageCode)) {
 
-      const languageCode = locale.languageCode.toLowerCase();
+      const tag = languageCode.toLowerCase();
 
-      if (!_.isNil(selector(strings[languageCode]))) {
+      if (!_.isNil(selector(strings[tag]))) {
 
-        let result = selector(strings[languageCode]);
+        let result = selector(strings[tag]);
 
         if (params && _.isString(result)) {
           result = replace_pattern(result, params);
