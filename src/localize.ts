@@ -24,6 +24,7 @@
 //
 
 import _ from 'lodash';
+import decompose from './language';
 
 const _lang_map: Record<string, string> = {
   "zh-cn": "zh-hans",
@@ -32,16 +33,6 @@ const _lang_map: Record<string, string> = {
 };
 
 const replace_pattern = (pattern: string, params: Record<string, any>) => pattern.replace(/\$\{\s*(\w+)\s*\}/g, (_, key) => `${params[key]}`);
-
-function getLanguagePartFromCode(code: string) {
-  if (!_.isString(code) || code.indexOf('-') < 0) return code;
-  return code.split('-')[0];
-}
-
-function getScriptPartFromCode(code: string) {
-  if (!_.isString(code) || code.indexOf('-') < 0) return;
-  return code.split('-')[1];
-}
 
 export const localize = <T extends unknown>(
   strings: Record<string, T>,
@@ -52,42 +43,35 @@ export const localize = <T extends unknown>(
 
   if (_.isEmpty(strings)) return;
 
-  for (const locale of userLocales) {
+  const fetch = (tag: string) => {
+    const result = selector(strings[tag]);
+    return params && _.isString(result) ? replace_pattern(result, params) : result;
+  }
 
-    const languageCode = getLanguagePartFromCode(locale);
-    const scriptCode = getScriptPartFromCode(locale);
+  for (const lang of userLocales.map(x => x.toLowerCase())) {
 
-    if (!_.isEmpty(languageCode) && !_.isEmpty(scriptCode)) {
+    const part = decompose(lang);
 
-      let tag = `${languageCode}-${scriptCode}`.toLowerCase();
-      tag = _lang_map[tag] ?? tag;
+    if (!_.isNil(selector(strings[lang]))) {
+      return fetch(lang);
+    }
 
-      if (!_.isNil(selector(strings[tag]))) {
+    if (
+      !_.isEmpty(part.script) &&
+      !_.isNil(selector(strings[`${part.language}-${part.script}`]))
+    ) {
+      return fetch(`${part.language}-${part.script}`);
+    }
 
-        let result = selector(strings[tag]);
-
-        if (params && _.isString(result)) {
-          result = replace_pattern(result, params);
-        }
-
-        return result;
+    if (!_.isEmpty(part.region)) {
+      const mapped = _lang_map[`${part.language}-${part.region}`];
+      if (!_.isNil(selector(strings[mapped]))) {
+        return fetch(mapped);
       }
     }
 
-    if (!_.isEmpty(languageCode)) {
-
-      const tag = languageCode.toLowerCase();
-
-      if (!_.isNil(selector(strings[tag]))) {
-
-        let result = selector(strings[tag]);
-
-        if (params && _.isString(result)) {
-          result = replace_pattern(result, params);
-        }
-
-        return result;
-      }
+    if (!_.isNil(selector(strings[part.language]))) {
+      return fetch(part.language);
     }
   }
 }
