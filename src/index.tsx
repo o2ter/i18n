@@ -88,10 +88,10 @@ function _useUserLocales(i18nState?: { preferredLocale: string; fallback?: strin
 export const useUserLocales = () => _useUserLocales(_.omit(React.useContext(I18nContext), 'fallback'));
 export const setPreferredLocale = (locale: string) => i18n_update_event.emit('update', locale);
 
-export const useLocalize = (
-  { ...strings },
-  params: Record<string, any> = {}
-) => _localize(strings, params,  _useUserLocales(React.useContext(I18nContext)), (x) => x);
+export const useLocalize = () => {
+  const i18nState = React.useContext(I18nContext);
+  return ({ ...strings }, params: Record<string, any> = {}) => _localize(strings, params,  _useUserLocales(i18nState), (x) => x);
+}
 
 export const LocalizationStrings = ({ ...strings }) => ({
   useLocalize() {
