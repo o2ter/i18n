@@ -30,7 +30,7 @@ import EventEmitter from 'events';
 import _localize from './localize';
 
 const I18nContext = React.createContext({ preferredLocale: 'en', fallback: 'en' });
-const I18nSelectContext = React.createContext<{ selectedLocales?: string[]; }>({});
+const I18nSelectContext = React.createContext<{ selectedLocales?: string[]; fallback?: string; }>({});
 const i18n_update_event = new EventEmitter();
 
 export const I18nProvider: React.FC<React.PropsWithChildren<{
@@ -59,11 +59,13 @@ export const I18nProvider: React.FC<React.PropsWithChildren<{
 
 export const I18nSelect: React.FC<React.PropsWithChildren<{
   selectedLocales?: string[];
+  fallback?: string;
 }>> = ({
   selectedLocales,
+  fallback,
   children
 }) => {
-  const value = React.useMemo(() => ({ selectedLocales }), [selectedLocales]);
+  const value = React.useMemo(() => ({ selectedLocales, fallback }), [selectedLocales, fallback]);
   return <I18nSelectContext.Provider value={value}>{children}</I18nSelectContext.Provider>;
 };
 
@@ -99,19 +101,29 @@ function _useUserLocales(i18nState?: { preferredLocale: string; fallback?: strin
 export const useUserLocales = () => _useUserLocales(_.omit(React.useContext(I18nContext), 'fallback'));
 export const setPreferredLocale = (locale: string) => i18n_update_event.emit('update', locale);
 
-export const useLocalize = () => {
+const useI18nState = () => {
   const i18nState = React.useContext(I18nContext);
-  const { selectedLocales } = React.useContext(I18nSelectContext);
-  return ({ ...strings }, params: Record<string, any> = {}) => _localize(_.pickBy(strings, (_v, k) => _.indexOf(selectedLocales, k) !== -1), params,  _useUserLocales(i18nState), (x) => x);
+  const i18nSelect = React.useContext(I18nSelectContext);
+  return {
+    preferredLocale: i18nState.preferredLocale,
+    fallback: i18nSelect.fallback ?? i18nState.fallback,
+    selectedLocales: i18nSelect.selectedLocales,
+  }
+}
+
+const selectLang = ({ ...strings }, state: ReturnType<typeof useI18nState>) => _.pickBy(strings, (_v, k) => _.indexOf(state.selectedLocales, k) !== -1)
+
+export const useLocalize = () => {
+  const i18nState = useI18nState();
+  return ({ ...strings }, params: Record<string, any> = {}) => _localize(selectLang(strings, i18nState), params,  _useUserLocales(i18nState), (x) => x);
 }
 
 export const LocalizationStrings = ({ ...strings }) => ({
   useLocalize() {
-    const i18nState = React.useContext(I18nContext);
-    const { selectedLocales } = React.useContext(I18nSelectContext);
+    const i18nState = useI18nState();
     return {
       string(key: _.PropertyPath, params: Record<string, any> = {}) {
-        return _localize(_.pickBy(strings, (_v, k) => _.indexOf(selectedLocales, k) !== -1), params, _useUserLocales(i18nState), (x) => _.get(x, key)) ?? key;
+        return _localize(selectLang(strings, i18nState), params, _useUserLocales(i18nState), (x) => _.get(x, key)) ?? key;
       }
     }
   }
