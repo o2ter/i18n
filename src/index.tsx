@@ -30,6 +30,7 @@ import EventEmitter from 'events';
 import _localize from './localize';
 
 const I18nContext = React.createContext({ preferredLocale: 'en', fallback: 'en' });
+const I18nSelectContext = React.createContext<{ selectedLocales?: string[]; }>({});
 const i18n_update_event = new EventEmitter();
 
 export const I18nProvider: React.FC<React.PropsWithChildren<{
@@ -54,6 +55,16 @@ export const I18nProvider: React.FC<React.PropsWithChildren<{
   const value = React.useMemo(() => ({ preferredLocale: _preferredLocale, fallback }), [_preferredLocale, fallback]);
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
+};
+
+export const I18nSelect: React.FC<React.PropsWithChildren<{
+  selectedLocales?: string[];
+}>> = ({
+  selectedLocales,
+  children
+}) => {
+  const value = React.useMemo(() => ({ selectedLocales }), [selectedLocales]);
+  return <I18nSelectContext.Provider value={value}>{children}</I18nSelectContext.Provider>;
 };
 
 function _useUserLocales(i18nState?: { preferredLocale: string; fallback?: string; }) {
@@ -90,15 +101,17 @@ export const setPreferredLocale = (locale: string) => i18n_update_event.emit('up
 
 export const useLocalize = () => {
   const i18nState = React.useContext(I18nContext);
-  return ({ ...strings }, params: Record<string, any> = {}) => _localize(strings, params,  _useUserLocales(i18nState), (x) => x);
+  const { selectedLocales } = React.useContext(I18nSelectContext);
+  return ({ ...strings }, params: Record<string, any> = {}) => _localize(_.pickBy(strings, (_v, k) => _.indexOf(selectedLocales, k) !== -1), params,  _useUserLocales(i18nState), (x) => x);
 }
 
 export const LocalizationStrings = ({ ...strings }) => ({
   useLocalize() {
     const i18nState = React.useContext(I18nContext);
+    const { selectedLocales } = React.useContext(I18nSelectContext);
     return {
       string(key: _.PropertyPath, params: Record<string, any> = {}) {
-        return _localize(strings, params, _useUserLocales(i18nState), (x) => _.get(x, key)) ?? key;
+        return _localize(_.pickBy(strings, (_v, k) => _.indexOf(selectedLocales, k) !== -1), params, _useUserLocales(i18nState), (x) => _.get(x, key)) ?? key;
       }
     }
   }
