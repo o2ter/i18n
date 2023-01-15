@@ -22,7 +22,8 @@ const rollupOutputs = (name) => [
   {
     input: `src/${name}`,
     external: [
-      /node_modules/
+      /node_modules/,
+      /^react$/,
     ].filter(Boolean),
     output: [
       {
@@ -49,7 +50,8 @@ const rollupOutputs = (name) => [
   {
     input: `src/${name}`,
     external: [
-      /node_modules/
+      /node_modules/,
+      /^react$/,
     ],
     output: [
       {
