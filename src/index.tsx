@@ -40,7 +40,7 @@ export const I18nProvider: React.FC<React.PropsWithChildren<{
 }>> = ({
   preferredLocale = 'en',
   fallback = 'en',
-  onChange = () => {},
+  onChange = () => { },
   children
 }) => {
 
@@ -111,19 +111,28 @@ const useI18nState = () => {
   }
 }
 
-const selectLang = ({ ...strings }, state: ReturnType<typeof useI18nState>) => _.pickBy(strings, (_v, k) => _.indexOf(state.selectedLocales, k) !== -1)
+const selectLang = (
+  { ...strings },
+  state: ReturnType<typeof useI18nState>,
+) => _.isEmpty(state.selectedLocales) ? strings : _.pickBy(strings, (_v, k) => _.indexOf(state.selectedLocales, k) !== -1)
 
 export const useLocalize = () => {
   const i18nState = useI18nState();
-  return ({ ...strings }, params: Record<string, any> = {}) => _localize(selectLang(strings, i18nState), params,  _useUserLocales(i18nState), (x) => x);
+  const userLocales = _useUserLocales(i18nState);
+  return (
+    { ...strings },
+    params: Record<string, any> = {},
+  ) => _localize(selectLang(strings, i18nState), params, userLocales, (x) => x);
 }
 
 export const LocalizationStrings = ({ ...strings }) => ({
   useLocalize() {
     const i18nState = useI18nState();
+    const userLocales = _useUserLocales(i18nState);
+    const _strings = selectLang(strings, i18nState);
     return {
       string(key: _.PropertyPath, params: Record<string, any> = {}) {
-        return _localize(selectLang(strings, i18nState), params, _useUserLocales(i18nState), (x) => _.get(x, key)) ?? key;
+        return _localize(_strings, params, userLocales, (x) => _.get(x, key)) ?? key;
       }
     }
   }
