@@ -111,27 +111,34 @@ const useI18nState = () => {
   }
 }
 
-const selectLang = (
-  { ...strings },
+const selectLang = <T extends any>(
+  strings: Record<string, T>,
   state: ReturnType<typeof useI18nState>,
 ) => _.isEmpty(state.selectedLocales) ? strings : _.pickBy(strings, (_v, k) => _.indexOf(state.selectedLocales, k) !== -1)
 
 export const useLocalize = () => {
   const i18nState = useI18nState();
   const userLocales = _useUserLocales(i18nState);
-  return (
-    { ...strings },
+  return <T extends any>(
+    strings: Record<string, T>,
     params: Record<string, any> = {},
   ) => _localize(selectLang(strings, i18nState), params, userLocales, (x) => x);
 }
 
-export const LocalizationStrings = ({ ...strings }) => ({
+type Defaults<T, D> = T extends undefined ? D : T;
+
+export const LocalizationStrings = <T extends any>(
+  strings: Record<string, T>,
+) => ({
   useLocalize() {
     const i18nState = useI18nState();
     const userLocales = _useUserLocales(i18nState);
     const _strings = selectLang(strings, i18nState);
     return {
-      string(key: _.PropertyPath, params: Record<string, any> = {}) {
+      string<P extends _.PropertyPath>(
+        key: P,
+        params: Record<string, any> = {},
+      ): P extends string ? Defaults<_.GetFieldType<T, P>, P> : any {
         return _localize(_strings, params, userLocales, (x) => _.get(x, key)) ?? key;
       }
     }

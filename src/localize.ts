@@ -43,9 +43,9 @@ export const localize = <T extends unknown, R extends unknown>(
 
   if (_.isEmpty(strings)) return;
 
-  const fetch = (tag: string) => {
+  const fetch = _.isEmpty(params) ? (tag: string) => selector(strings[tag]) : (tag: string): R => {
     const result = selector(strings[tag]);
-    return params && _.isString(result) ? replace_pattern(result, params) : result;
+    return _.isString(result) ? replace_pattern(result, params) as R : result;
   }
 
   const langs = userLocales.map(x => decompose(x.toLowerCase()));
