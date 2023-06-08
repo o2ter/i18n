@@ -57,6 +57,8 @@ export const I18nProvider: React.FC<React.PropsWithChildren<{
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
 };
 
+I18nProvider.displayName = 'I18nProvider';
+
 export const I18nSelect: React.FC<React.PropsWithChildren<{
   selectedLocales?: string[];
   fallback?: string;
@@ -68,6 +70,8 @@ export const I18nSelect: React.FC<React.PropsWithChildren<{
   const value = React.useMemo(() => ({ selectedLocales, fallback }), [selectedLocales, fallback]);
   return <I18nSelectContext.Provider value={value}>{children}</I18nSelectContext.Provider>;
 };
+
+I18nSelect.displayName = 'I18nSelect';
 
 function _useUserLocales(i18nState?: { preferredLocale: string; fallback?: string; }) {
 

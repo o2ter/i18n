@@ -36,7 +36,6 @@
     "@types/react": "^18.0.26",
     "rollup": "^3.10.0",
     "rollup-plugin-dts": "^5.1.1",
-    "ts-react-display-name": "^1.2.2",
     "tslib": "^2.4.1",
     "typescript": "^4.9.4"
   }
