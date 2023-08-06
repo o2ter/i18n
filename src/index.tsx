@@ -118,7 +118,7 @@ const useI18nState = () => {
 const selectLang = <T extends any>(
   strings: Record<string, T>,
   state: ReturnType<typeof useI18nState>,
-) => _.isEmpty(state.selectedLocales) ? strings : _.pickBy(strings, (_v, k) => _.indexOf(state.selectedLocales, k) !== -1)
+) => _.isEmpty(state.selectedLocales) ? strings : _.pickBy(strings, (_v, k) => _.includes(state.selectedLocales, k))
 
 export const useLocalize = () => {
   const i18nState = useI18nState();
