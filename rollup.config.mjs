@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import resolve from '@rollup/plugin-node-resolve';
 import typescript from '@rollup/plugin-typescript';
 import commonjs from '@rollup/plugin-commonjs';
@@ -40,8 +41,8 @@ const rollupOutputs = (name) => [
     plugins: [
       resolve({
         extensions: [
-          '.web.ts', '.web.tsx', '.web.mjs', '.web.js',
-          '.ts', '.tsx', '.mjs', '.js',
+          ..._.uniq(['.web', '']).flatMap(x => [`${x}.tsx`, `${x}.jsx`]),
+          ..._.uniq(['.web', '']).flatMap(x => [`${x}.ts`, `${x}.mjs`, `${x}.js`]),
         ]
       }),
       ...rollupPlugins
@@ -62,8 +63,8 @@ const rollupOutputs = (name) => [
     plugins: [
       resolve({
         extensions: [
-          '.web.ts', '.web.tsx', '.web.mjs', '.web.js',
-          '.ts', '.tsx', '.mjs', '.js',
+          ..._.uniq(['.web', '']).flatMap(x => [`${x}.tsx`, `${x}.jsx`]),
+          ..._.uniq(['.web', '']).flatMap(x => [`${x}.ts`, `${x}.mjs`, `${x}.js`]),
         ]
       }),
       dts()
