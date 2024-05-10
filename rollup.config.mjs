@@ -41,8 +41,8 @@ const rollupOutputs = (name) => [
     plugins: [
       resolve({
         extensions: [
-          ..._.uniq(['.web', '']).flatMap(x => [`${x}.tsx`, `${x}.jsx`]),
-          ..._.uniq(['.web', '']).flatMap(x => [`${x}.ts`, `${x}.mjs`, `${x}.js`]),
+          '.tsx', '.jsx',
+          '.ts', '.mjs', '.js',
         ]
       }),
       ...rollupPlugins
@@ -63,8 +63,8 @@ const rollupOutputs = (name) => [
     plugins: [
       resolve({
         extensions: [
-          ..._.uniq(['.web', '']).flatMap(x => [`${x}.tsx`, `${x}.jsx`]),
-          ..._.uniq(['.web', '']).flatMap(x => [`${x}.ts`, `${x}.mjs`, `${x}.js`]),
+          '.tsx', '.jsx',
+          '.ts', '.mjs', '.js',
         ]
       }),
       dts()
